@@ -47,8 +47,16 @@ def margin(price, cost):
         return "N/A"
 
     try:
-        value = ((float(price) / float(cost)) - 1) * 100
+        price = float(price)
+        cost = float(cost)
+
+        if price <= 0 or cost <= 0:
+            return "N/A"
+
+        value = ((price / cost) - 1) * 100
+
         return f"{value:.0f}%"
+
     except:
         return "N/A"
 
@@ -115,6 +123,7 @@ if not result.empty:
     col1, col2 = st.columns(2)
 
     with col1:
+
         st.metric(
             "Manufacturing Cost",
             money(row["manufacturing cost"])
@@ -134,6 +143,7 @@ if not result.empty:
         )
 
     with col2:
+
         st.metric(
             "Price / bag",
             money(row["price/bag"])
@@ -156,6 +166,7 @@ if not result.empty:
     col1, col2 = st.columns(2)
 
     with col1:
+
         st.metric(
             "lb / bag",
             number(row["lb/bag"])
@@ -167,6 +178,7 @@ if not result.empty:
         )
 
     with col2:
+
         st.metric(
             "pcs / cs",
             number(row["pcs/cs"])
