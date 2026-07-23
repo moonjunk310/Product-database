@@ -21,6 +21,16 @@ def money(v):
         return "N/A"
 
 
+def money_lb(v):
+    if pd.isna(v):
+        return "N/A"
+
+    try:
+        return f"${float(v):,.3f}"
+    except:
+        return "N/A"
+
+
 def number(v):
     if pd.isna(v):
         return "N/A"
@@ -112,7 +122,7 @@ if not result.empty:
 
         st.metric(
             "Price / lb",
-            money(row["price/lb"])
+            money_lb(row["price/lb"])
         )
 
         st.metric(
