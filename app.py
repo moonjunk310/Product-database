@@ -1,199 +1,209 @@
-
 import streamlit as st
 import pandas as pd
 
-# Excel 파일 읽기
-df = pd.read_excel("Products Price table Web.xlsx")
-
-st.title("9 Star Foods Product Database")
-
-# ------------------------
-# 표시 함수
-# ------------------------
-
-def money(v):
-    if pd.isna(v):
-        return "N/A"
-
-    try:
-        return f"${float(v):,.2f}"
-    except:
-        return "N/A"
-
-
-def money_lb(v):
-    if pd.isna(v):
-        return "N/A"
-
-    try:
-        return f"${float(v):,.3f}"
-    except:
-        return "N/A"
-
-
-def number(v):
-    if pd.isna(v):
-        return "N/A"
-
-    try:
-        return f"{float(v):.3f}".rstrip("0").rstrip(".")
-    except:
-        return str(v)
-
-
-def margin(price, cost):
-
-    if pd.isna(price) or pd.isna(cost):
-        return "N/A"
-
-    try:
-        price = float(price)
-        cost = float(cost)
-
-        if price <= 0 or cost <= 0:
-            return "N/A"
-
-        value = ((price / cost) - 1) * 100
-
-        return f"{value:.0f}%"
-
-    except:
-        return "N/A"
-
-
-# ------------------------
-# Category 선택
-# ------------------------
-
-selected_category = st.selectbox(
-    "Select Category",
-    sorted(df["Category"].dropna().unique())
+st.set_page_config(
+    page_title="9 Star Foods Database",
+    layout="wide"
 )
 
-category_df = df[
-    df["Category"] == selected_category
-]
-
 # ------------------------
-# Product 선택
+# Load Data
 # ------------------------
 
-selected_product = st.selectbox(
-    "Select Product",
-    sorted(category_df["Items"].dropna().unique())
+products_df = pd.read_excel(
+    "Products Price table Web.xlsx"
 )
 
-product_df = category_df[
-    category_df["Items"] == selected_product
-]
-
-# ------------------------
-# Customer 선택
-# ------------------------
-
-selected_customer = st.selectbox(
-    "Select Customer",
-    sorted(product_df["Remarks"].fillna("N/A").unique())
+ingredients_df = pd.read_excel(
+    "Ingredients Price table Web.xlsx"
 )
 
-result = product_df[
-    product_df["Remarks"] == selected_customer
-]
-
 # ------------------------
-# 결과 표시
+# Sidebar Menu
 # ------------------------
 
-if not result.empty:
+page = st.sidebar.radio(
+    "Database",
+    ["Products", "Ingredients"]
+)
 
-    row = result.iloc[0]
+# ==================================================
+# PRODUCTS DATABASE
+# ==================================================
 
-    st.markdown("---")
+if page == "Products":
 
-    st.title(row["Items"])
+    st.title("9 Star Foods Product Database")
 
-    st.write(f"**Customer:** {row['Remarks']}")
-    st.write(f"**SKU:** {row['SKU']}")
-    st.write(f"**USDA Category:** {row['USDA Category']}")
-
-    st.markdown("---")
-
-    st.subheader("💰 Pricing")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.metric(
-            "Manufacturing Cost",
-            money(row["manufacturing cost"])
+    selected_category = st.selectbox(
+        "Select Category",
+        sorted(
+            products_df["Category"]
+            .dropna()
+            .unique()
         )
-
-        st.metric(
-            "Price / lb",
-            money_lb(row["price/lb"])
-        )
-
-        st.metric(
-            "Margin",
-            margin(
-                row["price/lb"],
-                row["manufacturing cost"]
-            )
-        )
-
-    with col2:
-
-        st.metric(
-            "Price / bag",
-            money(row["price/bag"])
-        )
-
-        st.metric(
-            "Box Price",
-            money(row["box price"])
-        )
-
-        st.metric(
-            "Pallet Price",
-            money(row["pallet price"])
-        )
-
-    st.markdown("---")
-
-    st.subheader("📦 Packaging")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.metric(
-            "lb / bag",
-            number(row["lb/bag"])
-        )
-
-        st.metric(
-            "lb / cs",
-            number(row["lb/cs"])
-        )
-
-    with col2:
-
-        st.metric(
-            "pcs / cs",
-            number(row["pcs/cs"])
-        )
-
-        st.metric(
-            "cs / pallet",
-            number(row["cs/pallet"])
-        )
-
-    st.markdown("---")
-
-    st.subheader("🚚 Shipping")
-
-    st.metric(
-        "lb / pallet",
-        number(row["lb/pallet"])
     )
+
+    category_df = products_df[
+        products_df["Category"] == selected_category
+    ]
+
+    selected_product = st.selectbox(
+        "Select Product",
+        sorted(
+            category_df["Items"]
+            .dropna()
+            .unique()
+        )
+    )
+
+    product_df = category_df[
+        category_df["Items"] == selected_product
+    ]
+
+    selected_customer = st.selectbox(
+        "Select Customer",
+        sorted(
+            product_df["Remarks"]
+            .fillna("N/A")
+            .unique()
+        )
+    )
+
+    result = product_df[
+        product_df["Remarks"] == selected_customer
+    ]
+
+    if not result.empty:
+
+        row = result.iloc[0]
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric(
+                "SKU",
+                row["SKU"]
+            )
+
+            st.metric(
+                "Manufacturing Cost",
+                f"${row['manufacturing cost']}"
+                if pd.notna(row["manufacturing cost"])
+                else "N/A"
+            )
+
+            st.metric(
+                "Price/LB",
+                f"${row['price/lb']}"
+                if pd.notna(row["price/lb"])
+                else "N/A"
+            )
+
+        with col2:
+            st.metric(
+                "Price/Bag",
+                f"${row['price/bag']}"
+                if pd.notna(row["price/bag"])
+                else "N/A"
+            )
+
+            st.metric(
+                "Box Price",
+                f"${row['box price']}"
+                if pd.notna(row["box price"])
+                else "N/A"
+            )
+
+            st.metric(
+                "Pallet Price",
+                f"${row['pallet price']}"
+                if pd.notna(row["pallet price"])
+                else "N/A"
+            )
+
+        with col3:
+            st.metric(
+                "Margin %",
+                f"{round(row['margin ratio(%)']*100,1)}%"
+                if pd.notna(row["margin ratio(%)"])
+                else "N/A"
+            )
+
+            st.metric(
+                "PCS/CS",
+                row["pcs/cs"]
+                if pd.notna(row["pcs/cs"])
+                else "N/A"
+            )
+
+            st.metric(
+                "CS/Pallet",
+                row["cs/pallet"]
+                if pd.notna(row["cs/pallet"])
+                else "N/A"
+            )
+
+        st.divider()
+
+        st.subheader("Product Details")
+
+        st.dataframe(
+            result,
+            use_container_width=True
+        )
+
+# ==================================================
+# INGREDIENTS DATABASE
+# ==================================================
+
+if page == "Ingredients":
+
+    st.title("9 Star Foods Ingredients Database")
+
+    selected_ingredient = st.selectbox(
+        "Select Ingredient",
+        sorted(
+            ingredients_df["Ingredients"]
+            .dropna()
+            .unique()
+        )
+    )
+
+    result = ingredients_df[
+        ingredients_df["Ingredients"]
+        == selected_ingredient
+    ]
+
+    if not result.empty:
+
+        display_df = result[
+            [
+                "Code",
+                "Brand",
+                "Vendor",
+                "$/lb"
+            ]
+        ]
+
+        st.dataframe(
+            display_df,
+            use_container_width=True
+        )
+
+        price_series = pd.to_numeric(
+            result["$/lb"],
+            errors="coerce"
+        )
+
+        if price_series.notna().any():
+
+            lowest_row = result.loc[
+                price_series.idxmin()
+            ]
+
+            st.success(
+                f"Lowest Price: "
+                f"{lowest_row['Vendor']} "
+                f"(${float(lowest_row['$/lb']):.2f}/lb)"
+            )
